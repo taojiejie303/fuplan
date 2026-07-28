@@ -99,14 +99,27 @@
   .btn.primary:hover{transform:translateY(-1px);box-shadow:0 6px 16px -6px rgba(165,148,255,.5)}
   .btn.ghost{background:transparent;color:var(--sub);border:1.5px solid var(--line)}
   .btn.ghost:hover{color:var(--ink)}
-  .todo-list{list-style:none}
-  .todo-item{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px dashed var(--line);transition:.2s}
-  .todo-item:hover{transform:translateX(2px)}
-  .todo-item .cb{width:24px;height:24px;border:2.5px solid var(--c-1);border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s;min-width:24px}
-  .todo-item.done .cb{background:var(--c-1);border-color:var(--c-1)}
-  .todo-item.done .cb::after{content:"✓";color:#fff;font-size:14px;font-weight:700}
-  .todo-item .t{flex:1;font-size:14px;transition:.2s}
-  .todo-item.done .t{text-decoration:line-through;color:var(--sub)}
+  .todo-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .todo-item{
+    display:flex;align-items:center;gap:14px;
+    background:var(--bg-2);border-radius:14px;
+    padding:14px 16px;transition:.3s;
+    border:2px solid transparent;
+  }
+  .todo-item:hover{transform:translateX(2px);border-color:var(--c-1)}
+  .todo-item.done{background:#f0f0f0;opacity:.65}
+  .todo-item .cb{
+    width:28px;height:28px;border:3px solid var(--c-1);
+    border-radius:50%;cursor:pointer;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    transition:.2s;min-width:28px;
+  }
+  .todo-item.done .cb{background:var(--ok);border-color:var(--ok)}
+  .todo-item.done .cb::after{content:"✓";color:#fff;font-size:16px;font-weight:800}
+  .todo-item .t{flex:1;font-size:15px;transition:.3s;font-weight:500}
+  .todo-item.done .t{text-decoration:line-through;color:#aaa}
+  @keyframes bounce{0%{transform:scale(1)}30%{transform:scale(1.25)}60%{transform:scale(.9)}100%{transform:scale(1)}}
+  .todo-item.done .cb{animation:bounce .4s ease}
   .todo-item .del{cursor:pointer;color:var(--sub);opacity:0;transition:.2s;font-size:16px}
   .todo-item:hover .del{opacity:1}
   .todo-item .del:hover{color:var(--c-1)}
@@ -383,7 +396,13 @@ function renderTodo(){
   $('progressFill').style.width=(total===0?0:Math.round(done/total*100))+'%';
 }
 function addTodo(){const inp=$('todoText');const text=inp.value.trim();if(!text)return;todos.push({text,done:false});save('todos_'+todayStr(),todos);inp.value='';renderTodo();}
-function toggleTodo(i){todos[i].done=!todos[i].done;save('todos_'+todayStr(),todos);renderTodo();if(todos[i].done)toast('完成一项，棒棒的！🎉');}
+function toggleTodo(i){
+  todos[i].done=!todos[i].done;save('todos_'+todayStr(),todos);renderTodo();
+  if(todos[i].done){
+    if(navigator.vibrate)navigator.vibrate(10);
+    toast('完成一项，棒棒的！🎉');
+  }
+}
 function delTodo(i){todos.splice(i,1);save('todos_'+todayStr(),todos);renderTodo();}
 $('todoText').addEventListener('keydown',e=>{if(e.key==='Enter')addTodo()});
 
