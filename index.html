@@ -184,18 +184,18 @@
     </div>
     <div class="side-section">
       <div class="sec-title">📌 核心</div>
-      <div class="side-item active"><span class="em">🏠</span> 工作台首页</div>
-      <div class="side-item"><span class="em">💰</span> 记账存钱</div>
+      <div class="side-item active" onclick="navTo('home')"><span class="em">🏠</span> 工作台首页</div>
+      <div class="side-item" onclick="navTo('travel')"><span class="em">💰</span> 旅行记账</div>
     </div>
     <div class="side-section">
       <div class="sec-title">🌸 个人成长</div>
-      <div class="side-item"><span class="em">📋</span> 每日计划</div>
-      <div class="side-item"><span class="em">🎵</span> 古筝练习</div>
-      <div class="side-item"><span class="em">📚</span> 读书时间</div>
+      <div class="side-item" onclick="navTo('plan')"><span class="em">📋</span> 每日计划</div>
+      <div class="side-item" onclick="navTo('guz')"><span class="em">🎵</span> 古筝练习</div>
+      <div class="side-item" onclick="navTo('book')"><span class="em">📚</span> 读书时间</div>
     </div>
     <div class="side-section">
       <div class="sec-title">💡 创作</div>
-      <div class="side-item"><span class="em">📱</span> 抖音灵感</div>
+      <div class="side-item" onclick="navTo('insp')"><span class="em">📱</span> 抖音灵感</div>
     </div>
   </aside>
 
@@ -219,7 +219,7 @@
     </div>
 
     <!-- Streaks -->
-    <div class="streaks" id="streaks">
+    <div class="streaks" id="sec-home">
       <div class="streak s1"><div class="ico">📋</div><div class="info"><div class="l">今日待办</div><div class="v" id="streak-todo">0<small>/0</small></div></div></div>
       <div class="streak s2"><div class="ico">🎵</div><div class="info"><div class="l">古筝连续</div><div class="v" id="streak-guz">0<small>天</small></div></div></div>
       <div class="streak s3"><div class="ico">📚</div><div class="info"><div class="l">读书连续</div><div class="v" id="streak-book">0<small>天</small></div></div></div>
@@ -230,7 +230,7 @@
       <!-- 左列 -->
       <div>
         <!-- 每日计划 -->
-        <div class="card plan">
+        <div class="card plan" id="sec-plan">
           <h2><span class="ico">📋</span> 每日计划 <span class="sub-t" id="planDate"></span></h2>
           <div class="todo-input">
             <input id="todoText" type="text" placeholder="添加今日待办，回车快速创建" maxlength="80">
@@ -244,7 +244,7 @@
         </div>
 
         <!-- 抖音灵感 -->
-        <div class="card insp">
+        <div class="card insp" id="sec-insp">
           <h2><span class="ico">💡</span> 抖音每日灵感 <span class="sub-t">记录创作火花</span></h2>
           <div class="insp-tags" id="inspTags"></div>
           <textarea class="insp-input" id="inspInput" placeholder="今天的选题/创意/脚本片段…"></textarea>
@@ -259,7 +259,7 @@
       <!-- 右列 -->
       <div>
         <!-- 古筝打卡 -->
-        <div class="card guz">
+        <div class="card guz" id="sec-guz">
           <h2><span class="ico">🎵</span> 古筝练习 <span class="badge todo" id="guzBadge">未打卡</span></h2>
           <div class="habit-box">
             <div class="ring-wrap">
@@ -287,7 +287,7 @@
         </div>
 
         <!-- 读书打卡 -->
-        <div class="card book">
+        <div class="card book" id="sec-book">
           <h2><span class="ico">📚</span> 读书时间 <span class="badge todo" id="bookBadge">未打卡</span></h2>
           <div class="habit-box">
             <div class="ring-wrap">
@@ -340,6 +340,23 @@ function save(key,val){localStorage.setItem('wb_'+key,JSON.stringify(val))}
 
 function openSidebar(){$('sidebar').classList.add('open');$('overlay').classList.add('show');}
 function closeSidebar(){$('sidebar').classList.remove('open');$('overlay').classList.remove('show');}
+
+function navTo(target){
+  closeSidebar();
+  if(target==='travel'){
+    window.open('travel.html','_blank');
+    return;
+  }
+  const el=$('sec-'+target);
+  if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// 侧边栏高亮
+function updateActive(){
+  document.querySelectorAll('.side-item').forEach(el=>el.classList.remove('active'));
+  // 默认首页高亮
+  document.querySelector('.side-item:first-child')?.classList.add('active');
+}
 
 /* ===== Todo ===== */
 let todos=load('todos_'+todayStr(),[]);
