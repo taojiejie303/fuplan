@@ -102,9 +102,9 @@
   .todo-list{list-style:none}
   .todo-item{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px dashed var(--line);transition:.2s}
   .todo-item:hover{transform:translateX(2px)}
-  .todo-item .cb{width:20px;height:20px;border:2px solid var(--c-1);border-radius:6px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s}
+  .todo-item .cb{width:24px;height:24px;border:2.5px solid var(--c-1);border-radius:50%;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.2s;min-width:24px}
   .todo-item.done .cb{background:var(--c-1);border-color:var(--c-1)}
-  .todo-item.done .cb::after{content:"✓";color:#fff;font-size:13px;font-weight:700}
+  .todo-item.done .cb::after{content:"✓";color:#fff;font-size:14px;font-weight:700}
   .todo-item .t{flex:1;font-size:14px;transition:.2s}
   .todo-item.done .t{text-decoration:line-through;color:var(--sub)}
   .todo-item .del{cursor:pointer;color:var(--sub);opacity:0;transition:.2s;font-size:16px}
@@ -367,7 +367,14 @@ function renderTodo(){
   if(todos.length===0){list.innerHTML='<div class="todo-empty">今日还没有待办，添加一项开始吧～</div>'}
   else todos.forEach((t,i)=>{
     const li=document.createElement('li');li.className='todo-item'+(t.done?' done':'');
-    li.innerHTML=`<div class="cb" onclick="toggleTodo(${i})"></div><div class="t">${escapeHtml(t.text)}</div><span class="del" onclick="delTodo(${i})">✕</span>`;
+    const cb=document.createElement('div');cb.className='cb';
+    cb.addEventListener('click',function(e){e.stopPropagation();toggleTodo(i);});
+    const txt=document.createElement('div');txt.className='t';txt.textContent=t.text;
+    txt.addEventListener('click',function(e){e.stopPropagation();toggleTodo(i);});
+    const del=document.createElement('span');del.className='del';del.textContent='✕';
+    del.addEventListener('click',function(e){e.stopPropagation();delTodo(i);});
+    li.appendChild(cb);li.appendChild(txt);li.appendChild(del);
+    li.addEventListener('click',function(){toggleTodo(i);});
     list.appendChild(li);
   });
   const done=todos.filter(t=>t.done).length,total=todos.length;
