@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="河南旅行记账">
+<title>河南旅行记账本</title>
+<style>
+  :root{
+    --c-train:#ff8a65; --c-transit:#4fc3f7; --c-hotel:#ab47bc; --c-food:#ffca28; --c-shop:#66bb6a;
+    --bg:#fdf6f0; --card:#ffffff; --ink:#3e2723; --sub:#8d6e63;
+    --line:#efebe9; --ok:#2e7d32; --warn:#e65100; --danger:#c62828;
+    --shadow:0 4px 16px -6px rgba(62,39,35,.15);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    color:var(--ink); background:var(--bg);
+    min-height:100vh; padding:0;
+  }
+  .wrap{max-width:600px;margin:0 auto;padding:20px 16px 60px}
+
+  /* Header */
+  header{text-align:center;margin-bottom:20px}
+  header .emoji{font-size:48px;margin-bottom:4px}
+  header h1{font-size:22px;font-weight:800}
+  header .trip{font-size:13px;color:var(--sub);margin-top:4px}
+  header .trip b{color:var(--ink)}
+
+  /* Trip Card */
+  .trip-card{
+    background:linear-gradient(135deg,#fff3e0,#fff8e1);
+    border-radius:16px;padding:16px 18px;margin-bottom:18px;
+    display:flex;gap:16px;align-items:center;box-shadow:var(--shadow);
+  }
+  .trip-card .train{width:48px;height:48px;background:linear-gradient(135deg,var(--c-train),#ffcc80);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+  .trip-card .info{flex:1;font-size:13px;line-height:1.7}
+  .trip-card .info b{font-size:15px}
+  .trip-card .days{text-align:right;font-size:12px;color:var(--sub);flex-shrink:0}
+  .trip-card .days .n{font-size:28px;font-weight:800;color:var(--c-train)}
+
+  /* Budget Overview */
+  .budget-bar{margin-bottom:18px}
+  .budget-bar .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .budget-bar .top .lab{font-size:13px;color:var(--sub)}
+  .budget-bar .top .val{font-size:15px;font-weight:700}
+  .budget-bar .track{height:8px;background:#fff;border-radius:4px;overflow:hidden}
+  .budget-bar .track .fill{height:100%;border-radius:4px;transition:width .4s}
+  .budget-bar .track .fill.ok{background:linear-gradient(90deg,#81c784,#a5d6a7)}
+  .budget-bar .track .fill.warn{background:linear-gradient(90deg,#ffb74d,#ff8a65)}
+  .budget-bar .track .fill.over{background:linear-gradient(90deg,#e53935,#ef5350)}
+
+  /* Category Cards */
+  .cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+  .cat-item{
+    background:var(--card);border-radius:14px;padding:14px;
+    box-shadow:var(--shadow);cursor:pointer;transition:.2s;
+    border-left:3px solid transparent;
+  }
+  .cat-item:hover{transform:translateY(-1px)}
+  .cat-item.selected{box-shadow:0 0 0 2px var(--c-train)}
+  .cat-item .cat-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .cat-item .cat-head .ico{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px}
+  .cat-item .cat-head .name{font-size:14px;font-weight:600}
+  .cat-item .cat-amt{font-size:11px;color:var(--sub)}
+  .cat-item .cat-amt b{color:var(--ink);font-size:14px}
+  .cat-item .cat-bar{height:4px;background:#f5f0eb;border-radius:2px;margin-top:6px;overflow:hidden}
+  .cat-item .cat-bar .cf{height:100%;border-radius:2px;transition:width .3s}
+  /* cat colors */
+  .cat-item.c-train{border-left-color:var(--c-train)}.cat-item.c-train .ico{background:#fff3e0;color:var(--c-train)}.cat-item.c-train .cf{background:var(--c-train)}
+  .cat-item.c-transit{border-left-color:var(--c-transit)}.cat-item.c-transit .ico{background:#e1f5fe;color:var(--c-transit)}.cat-item.c-transit .cf{background:var(--c-transit)}
+  .cat-item.c-hotel{border-left-color:var(--c-hotel)}.cat-item.c-hotel .ico{background:#f3e5f5;color:var(--c-hotel)}.cat-item.c-hotel .cf{background:var(--c-hotel)}
+  .cat-item.c-food{border-left-color:var(--c-food)}.cat-item.c-food .ico{background:#fffde7;color:var(--c-food)}.cat-item.c-food .cf{background:var(--c-food)}
+  .cat-item.c-shop{border-left-color:var(--c-shop)}.cat-item.c-shop .ico{background:#e8f5e9;color:var(--c-shop)}.cat-item.c-shop .cf{background:var(--c-shop)}
+
+  /* Quick Add */
+  .add-box{background:var(--card);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-bottom:18px}
+  .add-box .add-row{display:flex;gap:8px;margin-bottom:10px}
+  .add-box input, .add-box select{padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;font-family:inherit;outline:none;transition:.2s}
+  .add-box input:focus, .add-box select:focus{border-color:var(--c-train)}
+  .add-box input[type="number"]{width:100px}
+  .add-box input[type="text"]{flex:1}
+  .add-box select{width:120px}
+  .btn{padding:11px 20px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
+  .btn.primary{background:linear-gradient(135deg,#ff8a65,#ffb74d);color:#fff}
+  .btn.primary:hover{transform:translateY(-1px)}
+  .btn.ghost{background:transparent;color:var(--sub);border:1.5px solid var(--line)}
+  .btn.danger{background:transparent;color:var(--danger);border:1.5px solid #ffcdd2}
+  .btn-sm{padding:6px 12px;font-size:12px;border-radius:8px}
+
+  /* Budget Setup */
+  .setup-box{background:var(--card);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-bottom:18px}
+  .setup-box h3{font-size:14px;font-weight:700;margin-bottom:12px}
+  .setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .setup-grid label{font-size:12px;color:var(--sub)}
+  .setup-grid input{padding:8px 10px;border:1.5px solid var(--line);border-radius:8px;font-size:13px;width:100%;font-family:inherit;outline:none}
+  .setup-grid input:focus{border-color:var(--c-train)}
+
+  /* Expense List */
+  .expense-list{margin-bottom:18px}
+  .expense-list h3{font-size:14px;font-weight:700;margin-bottom:10px}
+  .exp-item{background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:8px;box-shadow:0 2px 8px -4px rgba(0,0,0,.1);display:flex;align-items:center;gap:10px}
+  .exp-item .cat-tag{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+  .exp-item .cat-tag.train{background:#fff3e0}
+  .exp-item .cat-tag.transit{background:#e1f5fe}
+  .exp-item .cat-tag.hotel{background:#f3e5f5}
+  .exp-item .cat-tag.food{background:#fffde7}
+  .exp-item .cat-tag.shop{background:#e8f5e9}
+  .exp-item .mid{flex:1}
+  .exp-item .mid .note{font-size:14px}
+  .exp-item .mid .meta{font-size:11px;color:var(--sub);margin-top:2px}
+  .exp-item .price{font-size:16px;font-weight:700;flex-shrink:0}
+  .exp-item .del{color:var(--sub);cursor:pointer;font-size:14px;padding:4px}
+  .exp-item .del:hover{color:var(--danger)}
+  .exp-empty{text-align:center;color:var(--sub);font-size:13px;padding:24px 0}
+
+  /* Toast */
+  #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-100px);background:linear-gradient(135deg,#ff8a65,#ffb74d);color:#fff;padding:12px 22px;border-radius:30px;font-size:14px;font-weight:600;box-shadow:0 10px 30px -8px rgba(0,0,0,.3);z-index:9999;transition:transform .35s cubic-bezier(.34,1.56,.64,1)}
+  #toast.show{transform:translateX(-50%) translateY(0)}
+
+  footer{text-align:center;color:var(--sub);font-size:12px;margin-top:20px}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div class="wrap">
+
+  <header>
+    <div class="emoji">🏯</div>
+    <h1>郑州 & 洛阳之旅</h1>
+    <div class="trip"><b>8月6日</b> 南宁出发 · 8月6日 - 待定</div>
+  </header>
+
+  <!-- 行程卡片 -->
+  <div class="trip-card">
+    <div class="train">🚄</div>
+    <div class="info">
+      <b>南宁东 → 郑州</b><br>
+      8月6日 出发 · 车票 <b>¥290</b><br>
+      <span style="font-size:12px;color:var(--sub)">已预扣车费</span>
+    </div>
+    <div class="days"><div class="n" id="daysCount">0</div>天旅程</div>
+  </div>
+
+  <!-- 预算总览 -->
+  <div class="budget-bar">
+    <div class="top">
+      <span class="lab">💰 总预算 <span id="totalBudgetLabel">0</span> 元</span>
+      <span class="val" id="totalSpent">已花 ¥0</span>
+    </div>
+    <div class="track"><div class="fill ok" id="totalBar" style="width:0%"></div></div>
+  </div>
+
+  <!-- 分类预算卡片 -->
+  <div class="cat-grid" id="catGrid"></div>
+
+  <!-- 快速记账 -->
+  <div class="add-box">
+    <div class="add-row">
+      <input type="number" id="expAmount" placeholder="金额" step="0.01" min="0.01" onkeydown="if(event.key==='Enter')addExpense()">
+      <select id="expCat">
+        <option value="train">🚄 车费</option>
+        <option value="transit">🚇 市内交通</option>
+        <option value="hotel">🏨 住宿</option>
+        <option value="food">🍜 餐饮</option>
+        <option value="shop">🛍️ 购物</option>
+      </select>
+      <button class="btn primary" onclick="addExpense()">记账</button>
+    </div>
+    <input type="text" id="expNote" placeholder="备注（选填）" style="width:100%">
+  </div>
+
+  <!-- 消费列表 -->
+  <div class="expense-list">
+    <h3>📝 消费记录</h3>
+    <div id="expList"></div>
+  </div>
+
+  <!-- 预算设置 -->
+  <div class="setup-box">
+    <h3>⚙️ 设置预算</h3>
+    <div class="setup-grid">
+      <div><label>🚄 车费预算</label><input type="number" id="budget-train" value="600" placeholder="元" onchange="saveBudgets()"></div>
+      <div><label>🚇 市内交通</label><input type="number" id="budget-transit" value="200" placeholder="元" onchange="saveBudgets()"></div>
+      <div><label>🏨 住宿</label><input type="number" id="budget-hotel" value="800" placeholder="元" onchange="saveBudgets()"></div>
+      <div><label>🍜 餐饮</label><input type="number" id="budget-food" value="500" placeholder="元" onchange="saveBudgets()"></div>
+      <div><label>🛍️ 购物</label><input type="number" id="budget-shop" value="300" placeholder="元" onchange="saveBudgets()"></div>
+      <div><label>💰 总预算</label><input type="number" id="budget-total" value="2400" placeholder="元" onchange="saveBudgets()"></div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:8px">
+      <button class="btn primary" onclick="saveBudgets()">保存预算</button>
+      <button class="btn ghost" onclick="resetData()">重置数据</button>
+    </div>
+  </div>
+
+  <footer>数据保存在本地浏览器 · 祝旅途愉快 🚄</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const cats=[
+  {key:'train',name:'车费',emoji:'🚄',color:'train'},
+  {key:'transit',name:'市内交通',emoji:'🚇',color:'transit'},
+  {key:'hotel',name:'住宿',emoji:'🏨',color:'hotel'},
+  {key:'food',name:'餐饮',emoji:'🍜',color:'food'},
+  {key:'shop',name:'购物',emoji:'🛍️',color:'shop'}
+];
+
+const START_DATE='2026-08-06';
+
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function load(k,d){try{return JSON.parse(localStorage.getItem('travel_'+k))||d}catch(e){return d}}
+function save(k,v){localStorage.setItem('travel_'+k,JSON.stringify(v))}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+
+let expenses=load('expenses',[]);
+let budgets=load('budgets',{train:600,transit:200,hotel:800,food:500,shop:300,total:2400});
+
+// 如果还没记录南宁车票，自动添加
+if(!load('init290',false)){
+  const d=new Date(START_DATE);
+  expenses.push({
+    cat:'train', amount:290, note:'南宁东 → 郑州', date:START_DATE,
+    time:String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')
+  });
+  save('init290',true);
+  save('expenses',expenses);
+}
+
+function getCatTotal(key){return expenses.filter(e=>e.cat===key).reduce((s,e)=>s+e.amount,0)}
+function getTotal(){return expenses.reduce((s,e)=>s+e.amount,0)}
+function getCatBudget(key){return budgets[key]||0}
+
+// 倒计时天数
+function updateDays(){
+  const start=new Date(START_DATE);
+  const now=new Date();
+  const diff=Math.ceil((now-start)/86400000);
+  $('daysCount').textContent=diff<0?0:diff;
+}
+
+// 渲染分类卡片
+function renderCats(){
+  const grid=$('catGrid');grid.innerHTML='';
+  cats.forEach(c=>{
+    const spent=getCatTotal(c.key);
+    const budget=getCatBudget(c.key);
+    const pct=budget>0?Math.min(spent/budget*100,100):0;
+    const over=spent>budget;
+    const el=document.createElement('div');
+    el.className='cat-item c-'+c.color+(over?' over':'');
+    el.innerHTML=`
+      <div class="cat-head"><span class="ico">${c.emoji}</span><span class="name">${c.name}</span></div>
+      <div class="cat-amt">已花 <b>¥${spent}</b> / 预算 ¥${budget}${over?' <span style="color:var(--danger)">超支!</span>':''}</div>
+      <div class="cat-bar"><div class="cf" style="width:${pct}%;background:${over?'#e53935':''}"></div></div>
+    `;
+    grid.appendChild(el);
+  });
+}
+
+// 渲染总预算条
+function renderTotal(){
+  const spent=getTotal();
+  const budget=budgets.total||2400;
+  const pct=budget>0?Math.min(spent/budget*100,100):0;
+  const over=spent>budget;
+  $('totalBudgetLabel').textContent=budget;
+  $('totalSpent').textContent=`已花 ¥${spent}`+(over?' ⚠️超支':'');
+  const bar=$('totalBar');bar.style.width=pct+'%';
+  bar.className='fill '+(over?'over':pct>80?'warn':'ok');
+}
+
+// 渲染消费列表
+function renderList(){
+  const list=$('expList');list.innerHTML='';
+  if(expenses.length===0){list.innerHTML='<div class="exp-empty">还没有消费记录，开始记账吧 ✍️</div>';return}
+  expenses.slice().reverse().forEach((e,i)=>{
+    const realIdx=expenses.indexOf(e);
+    const cat=cats.find(c=>c.key===e.cat)||{};
+    const el=document.createElement('div');el.className='exp-item';
+    el.innerHTML=`
+      <div class="cat-tag ${cat.color||'train'}">${cat.emoji||'💰'}</div>
+      <div class="mid">
+        <div class="note">${e.note||cat.name||''}</div>
+        <div class="meta">${e.date} ${e.time||''} · ${cat.name||''}</div>
+      </div>
+      <div class="price">-¥${e.amount}</div>
+      <span class="del" onclick="delExpense(${realIdx})">✕</span>
+    `;
+    list.appendChild(el);
+  });
+}
+
+function addExpense(){
+  const amt=parseFloat($('expAmount').value);
+  if(!amt||amt<=0){toast('请输入金额');return}
+  const cat=$('expCat').value;
+  const note=$('expNote').value.trim();
+  const now=new Date();
+  expenses.push({
+    cat,amount:amt,note,date:todayStr(),
+    time:String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0')
+  });
+  save('expenses',expenses);
+  $('expAmount').value='';$('expNote').value='';
+  renderAll();toast('已记录 ✓');
+}
+
+function delExpense(i){
+  if(!confirm('删除这条记录？'))return;
+  expenses.splice(i,1);
+  save('expenses',expenses);
+  renderAll();
+}
+
+function saveBudgets(){
+  budgets={
+    train:parseFloat($('budget-train').value)||600,
+    transit:parseFloat($('budget-transit').value)||200,
+    hotel:parseFloat($('budget-hotel').value)||800,
+    food:parseFloat($('budget-food').value)||500,
+    shop:parseFloat($('budget-shop').value)||300,
+    total:parseFloat($('budget-total').value)||2400
+  };
+  save('budgets',budgets);
+  renderAll();toast('预算已保存 ✓');
+}
+
+function loadBudgetsToForm(){
+  Object.keys(budgets).forEach(k=>{
+    const el=$('budget-'+k);
+    if(el)el.value=budgets[k];
+  });
+}
+
+function resetData(){
+  if(!confirm('确认清除所有旅行记账数据？'))return;
+  Object.keys(localStorage).filter(k=>k.startsWith('travel_')).forEach(k=>localStorage.removeItem(k));
+  expenses=[];budgets={train:600,transit:200,hotel:800,food:500,shop:300,total:2400};
+  save('budgets',budgets);save('expenses',[]);
+  save('init290',false);
+  toast('已重置');location.reload();
+}
+
+function renderAll(){
+  renderCats();renderTotal();renderList();updateDays();
+}
+
+// 初始化
+loadBudgetsToForm();
+renderAll();
+</script>
+</body>
+</html>
