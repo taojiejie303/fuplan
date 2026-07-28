@@ -1,0 +1,17 @@
+{
+  "name": "富婆计划",
+  "short_name": "富婆计划",
+  "description": "每日工作台 - 计划、打卡、灵感记录",
+  "start_url": "/fuplan/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f0ff",
+  "theme_color": "#a594ff",
+  "icons": [
+    {
+      "src": "icon-v3.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
